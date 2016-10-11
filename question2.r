@@ -42,7 +42,7 @@ fisher_components <- function(data, labels) {
   SB <- (Mu1 - Mu2) %*% t(Mu1-Mu2)
   invSw <- solve(SW) %*% SB
   eig <- eigen(invSw)
-  vectors <- as.matrix(eig$vectors[,1:50])
+  vectors <- as.matrix(eig$vectors[,1:5])
   A[,ncol(A)] <- NULL
   # final_data <- t(t(vectors) %*% t(A))
   # return(final_data)
@@ -83,23 +83,23 @@ gaussian_naive_bayes <- function(data, test,test_labels) {
     predict <- test_labels[i,]
     vec <- C[i,]
     vec2 <- D[i,]
-    pos_score <- sum(sapply(vec,function(x) log(x+0.01)))
-    neg_score <- sum(sapply(vec2,function(x) log(x+0.01)))
+    pos_score <- sum(sapply(vec,function(x) log(x+1)))
+    neg_score <- sum(sapply(vec2,function(x) log(x+1)))
     #predict <- test[i,length(vec)]
     pos_score = log(nrow(positive)/nrow(data)) + pos_score
     neg_score = log(nrow(negative)/nrow(data)) + neg_score
-    
-    if(length(pos_score) == 0) {
-      naive_predict = -1
-    } else {
-      if((pos_score - neg_score)  >= 0.01) {
+    if((neg_score - pos_score)  >= 0.01) {
         naive_predict = -1
-      } else {
+    } else {
         naive_predict = 1
-      }
     }
+    
     if(naive_predict != predict) {
       mistake = mistake + 1
+    } else if( predict == 1) {
+      print(pos_score)
+      print(neg_score)
+      print("+++++++++++++++")
     }
     total = total +1
   }
@@ -112,8 +112,9 @@ labels <- read.table("Datasets/dorothea_train.labels", header = FALSE, sep = " "
 vectors <- fisher_components(data,labels)
 test <- read.table("Datasets/dorothea_valid.data", header = FALSE, sep = " ", col.names = paste0("V",seq_len(6100)), fill = TRUE)
 test_labels <- read.table("Datasets/dorothea_valid.labels", header = FALSE, sep = " ")
-test <- dense_to_sparse(test,200)
 
+data <- dense_to_sparse(data,200)
+test <- dense_to_sparse(test,200)
 data <- t(t(vectors) %*% t(data))
 data <- cbind(data, labels)
 test <- t(t(vectors) %*% t(test))
