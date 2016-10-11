@@ -46,51 +46,48 @@ fisher_components <- function(data, labels) {
   A[,ncol(A)] <- NULL
   # final_data <- t(t(vectors) %*% t(A))
   # return(final_data)
-  return(vectors)
+  return(Re(vectors))
 }
 
-gaussian_naive_bayes <- function(data, test) {
+gaussian_naive_bayes <- function(data, test,test_labels) {
   mask <- data[,ncol(data)] == -1 
   negative <- data[mask,]
   positive <- data[!mask,]
-  positive[,ncol(positive)+1] <- NULL
-  negative[,ncol(negative)+1] <- NULL
+  positive[,ncol(positive)] <- NULL
+  negative[,ncol(negative)] <- NULL
   
-  Mu1 <- as.matrix(apply(positive, 2, function(y) mean(y)))
-  Mu2 <- as.matrix(apply(negative, 2, function(y) mean(y)))
+  Mu1 <- apply(positive, 2, function(y) mean(y))
+  Mu2 <- apply(negative, 2, function(y) mean(y))
   
-  Var1 <- as.matrix(apply(positive, 2, function(y) var(y)))
-  Var2 <- as.matrix(apply(negative, 2, function(y) var(y)))
+  Var1 <- apply(positive, 2, function(y) var(y))
+  Var2 <- apply(negative, 2, function(y) var(y))
   
-  U <- (X - Mu1)^2
-  V <- (Y - Mu2)^2
+  A <- t(as.matrix(apply(test, 1, function(y) y - Mu1)))
+  B <- t(as.matrix(apply(test, 1, function(y) y - Mu2)))
+  
+  A <- A^2
+  B <- B^2
   
   Var1 <- 2*Var1^2
   Var2 <- 2*Var2^2
   
-  U <- -1*U/Var1
-  V <- -1*V/Var2
+  C <- exp(t(as.matrix(apply(A, 1, function(y) -1*y/Var1))))
+  D <- exp(t(as.matrix(apply(B, 1, function(y) -1*y/Var2))))
   
-  U <- exp(U)
-  V <- exp(V)
-  
-  U <- (1/sqrt(pi*Var1))*U
-  V <- (1/sqrt(pi*Var2))*V
+  # U <- t(as.matrix(apply(C,1, function(y) (1/sqrt(pi*Var1))*y)))
+  # V <- t(as.matrix(apply(D,1, function(y) (1/sqrt(pi*Var1))*y)))
   
   mistake = 0
   total = 0
-  for(i in 1:100) {
-    vec <- test[i,]
+  for(i in 1:nrow(test)) {
+    predict <- test_labels[i,]
+    vec <- C[i,]
+    vec2 <- D[i,]
+    pos_score <- sum(sapply(vec,function(x) log(x+0.01)))
+    neg_score <- sum(sapply(vec2,function(x) log(x+0.01)))
     #predict <- test[i,length(vec)]
-    pos_score = 1
-    neg_score = 1
-    #print(vec)
-    for(j in 1:(length(vec)-1)) {
-      pos_score = pos_score + log()
-      neg_score = neg_score + log(num_total/num_neg)
-    }
-    pos_score = pos_score + log(nrow(data)/nrow(positive))
-    neg_score = neg_score + log(nrow(data)/nrow(negative))
+    pos_score = log(nrow(positive)/nrow(data)) + pos_score
+    neg_score = log(nrow(negative)/nrow(data)) + neg_score
     
     if(length(pos_score) == 0) {
       naive_predict = -1
@@ -114,5 +111,12 @@ labels <- read.table("Datasets/dorothea_train.labels", header = FALSE, sep = " "
 #principle_components(data)
 vectors <- fisher_components(data,labels)
 test <- read.table("Datasets/dorothea_valid.data", header = FALSE, sep = " ", col.names = paste0("V",seq_len(6100)), fill = TRUE)
+test_labels <- read.table("Datasets/dorothea_valid.labels", header = FALSE, sep = " ")
 test <- dense_to_sparse(test,200)
+
+data <- t(t(vectors) %*% t(data))
+data <- cbind(data, labels)
+test <- t(t(vectors) %*% t(test))
+data <- cbind(test, test_labels)
+
 
