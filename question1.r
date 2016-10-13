@@ -16,32 +16,34 @@ naive_bayes_opt <- function(data,test) {
     positive_list[[capture.output(cat('V',j))]] <- count(positive[,j])
     negative_list[[capture.output(cat('V',j))]] <- count(negative[,j])
   }
-  for(i in 1:length(test)) {
+  for(i in 1:1000) {
     vec <- test[i,]
     predict <- test[i,length(vec)]
     pos_score = 1
     neg_score = 1
     for(j in 1:(length(vec)-1)) {
-      index <- capture.output(cat('V',1))
+      index <- capture.output(cat('V',j))
       num_total = data_list[[index]][data_list[[index]]$x == vec[1,j],]$freq
       num_pos = positive_list[[index]][positive_list[[index]]$x == vec[1,j],]$freq
       num_neg = negative_list[[index]][negative_list[[index]]$x == vec[1,j],]$freq
-      pos_score = pos_score + log(num_total/num_pos)
-      neg_score = neg_score + log(num_total/num_neg)
+      pos_score = pos_score + log(num_pos) - log(nrow(positive)) 
+      neg_score = neg_score + log(num_neg) - log(nrow(negative)) 
     }
-    pos_score = pos_score + log(nrow(data)/nrow(positive))
-    neg_score = neg_score + log(nrow(data)/nrow(negative))
+    pos_score = pos_score + log(nrow(positive)) - log(nrow(data)) 
+    neg_score = neg_score + log(nrow(negative)) - log(nrow(data)) 
     
     if(length(pos_score) == 0) {
       naive_predict = " - 50000."
     } else {
-      if((pos_score - neg_score)  >= 0.01) {
+      if(pos_score  <= neg_score) {
         naive_predict = " - 50000."
       } else {
         naive_predict = " 50000+."
       }
     }
-    
+    if(naive_predict == predict && predict == " 50000+."){
+      print("HELLOOOOO")
+    }
     if(naive_predict != predict) {
       mistake = mistake + 1
     }
@@ -49,6 +51,7 @@ naive_bayes_opt <- function(data,test) {
   }
   print(mistake/total)
 }
+
 naive_bayes <- function(data, test) {
   mask <- data[,ncol(data)] == " - 50000." 
   negative <- data[mask,]
@@ -84,6 +87,9 @@ naive_bayes <- function(data, test) {
       }
     }
     
+    if(naive_predict == predict && predict == " 50000+."){
+      print("HELLOOOOO")
+    }
     if(naive_predict != predict) {
       mistake = mistake + 1
     }
