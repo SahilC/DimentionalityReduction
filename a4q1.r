@@ -10,7 +10,7 @@ construct_kernel <- function(data) {
 
 kernel_principle_components <- function(data) {
   K <- construct_kernel(data)
-  I <- diag(5)/nrow(data)
+  I <- diag(nrow(data))/nrow(data)
   K_centered <- K - I%*%K - K%*%I + I%*%K%*%I
   eig <- eigen(K_centered)
   vectors <- as.matrix(eig$vectors[,1:20])

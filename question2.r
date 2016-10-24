@@ -12,18 +12,33 @@ dense_to_sparse <- function(data,nfeatures) {
   return(A)
 }
 
+fast_dense_to_sparse <- function(data,nfeatures) {
+  A = matrix(0,nrow(data),nfeatures)
+  for (k in 1:dim(data)[1]) {
+    # for (i in 1:(dim(data)[2])) {
+    #   if(!is.na(data[k,i]) && data[k,i]<= nfeatures) {
+    #     A[k,data[k,i]] <- 1
+    #   }
+    # }
+    A[k,data[k,] <= nfeatures] <- 1
+  }
+  return(A)
+}
 principle_components <- function(data) {
-  A <- dense_to_sparse(data,2000)
+  # A <- dense_to_sparse(data,2000)
+  A <- data
   X <- as.matrix(apply(A, 2, function(y) y - mean(y)))
   Y <- cov(X)
   eig <- eigen(Y)
-  vectors <- as.matrix(eig$vectors[,1:50])
-  final_data <- t(t(vectors) %*% t(X))
-  return(final_data)
+  vectors <- as.matrix(eig$vectors[,1:20])
+  # final_data <- t(t(vectors) %*% t(X))
+  # return(final_data)
+  return(vectors)
 }
 
 fisher_components <- function(data, labels) {
-  A <- dense_to_sparse(data,200)
+  # A <- dense_to_sparse(data,200)
+  A <- data
   A <- cbind(A, labels)
   X <- A[A$V1 == 1,]
   Y <- A[A$V1 == -1,]
@@ -42,7 +57,7 @@ fisher_components <- function(data, labels) {
   SB <- (Mu1 - Mu2) %*% t(Mu1-Mu2)
   invSw <- solve(SW) %*% SB
   eig <- eigen(invSw)
-  vectors <- as.matrix(eig$vectors[,1:5])
+  vectors <- as.matrix(eig$vectors[,1:1])
   A[,ncol(A)] <- NULL
   # final_data <- t(t(vectors) %*% t(A))
   # return(final_data)
@@ -96,10 +111,6 @@ gaussian_naive_bayes <- function(data, test,test_labels) {
     
     if(naive_predict != predict) {
       mistake = mistake + 1
-    } else if( predict == 1) {
-      print(pos_score)
-      print(neg_score)
-      print("+++++++++++++++")
     }
     total = total +1
   }
@@ -109,15 +120,16 @@ gaussian_naive_bayes <- function(data, test,test_labels) {
 data <- read.table("Datasets/dorothea_train.data", header = FALSE, sep = " ", col.names = paste0("V",seq_len(6100)), fill = TRUE)
 labels <- read.table("Datasets/dorothea_train.labels", header = FALSE, sep = " ") 
 #principle_components(data)
-vectors <- fisher_components(data,labels)
+# vectors <- fisher_components(data,labels)
+# vectors <- principle_components(data)
 test <- read.table("Datasets/dorothea_valid.data", header = FALSE, sep = " ", col.names = paste0("V",seq_len(6100)), fill = TRUE)
 test_labels <- read.table("Datasets/dorothea_valid.labels", header = FALSE, sep = " ")
 
-data <- dense_to_sparse(data,200)
-test <- dense_to_sparse(test,200)
-data <- t(t(vectors) %*% t(data))
-data <- cbind(data, labels)
-test <- t(t(vectors) %*% t(test))
-data <- cbind(test, test_labels)
+ddata <- dense_to_sparse(data,200)
+dtest <- dense_to_sparse(test,200)
+fdata <- t(t(vectors) %*% t(ddata))
+fdata <- cbind(fdata, labels)
+ftest <- t(t(vectors) %*% t(dtest))
+# ftest <- cbind(test, test_labels)
 
 
