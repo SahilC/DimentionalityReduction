@@ -16,7 +16,7 @@ naive_bayes_opt <- function(data,test) {
     positive_list[[capture.output(cat('V',j))]] <- count(positive[,j])
     negative_list[[capture.output(cat('V',j))]] <- count(negative[,j])
   }
-  for(i in 1:1000) {
+  for(i in 9000:10000) {
     vec <- test[i,]
     predict <- test[i,length(vec)]
     pos_score = 1
@@ -40,9 +40,6 @@ naive_bayes_opt <- function(data,test) {
       } else {
         naive_predict = " 50000+."
       }
-    }
-    if(naive_predict == predict && predict == " 50000+."){
-      print("HELLOOOOO")
     }
     if(naive_predict != predict) {
       mistake = mistake + 1
@@ -87,9 +84,6 @@ naive_bayes <- function(data, test) {
       }
     }
     
-    if(naive_predict == predict && predict == " 50000+."){
-      print("HELLOOOOO")
-    }
     if(naive_predict != predict) {
       mistake = mistake + 1
     }
