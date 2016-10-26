@@ -8,13 +8,19 @@ construct_kernel <- function(data,sequence) {
   return(K)
 }
 
+project_points <- function(data,vectors) {
+  sequence = 1:nrow(data)
+  K <- construct_kernel(data,sequence)
+  return (t(K) %*% vectors)
+}
+
 kernel_principle_components <- function(data) {
   sequence = 1:nrow(data)
   K <- construct_kernel(data,sequence)
-  I <- diag(nrow(data))/nrow(data)
+  I <- matrix(1,nrow(data),nrow(data))/nrow(data)
   K_centered <- K - I%*%K - K%*%I + I%*%K%*%I
   eig <- eigen(K_centered)
-  vectors <- as.matrix(eig$vectors[,1:20])
+  vectors <- as.matrix(eig$vectors[,1:20])/ sqrt(eig$values[1:20])
   # final_data <- t(t(vectors) %*% t(X))
   # return(final_data)
   return(vectors)
@@ -54,4 +60,9 @@ labels <- read.csv("Datasets/arcene_train.labels", header = FALSE, sep = " ")
 
 test <- read.csv("Datasets/arcene_valid.data", header = FALSE, sep = " ",  fill = TRUE)
 test_labels <- read.csv("Datasets/arcene_valid.labels", header = FALSE, sep = " ")
-v <- kernel_linear_discriminant(data,labels)
+#vect <- kernel_linear_discriminant(data,labels)
+vect <- kernel_principle_components(data)
+
+mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 100)
+pred <- predict(mysvm,a)
+length(as.vector(pred) == labels)
