@@ -3,11 +3,11 @@ library(e1071)
 
 norm_vec <- function(x) sqrt(sum(x^2))
 
-construct_kernel <- function(data_in,data_out,sequence) {
+construct_kernel <- function(data_in,data_out,sequence,gamma = 0.00000002) {
   K = matrix(0,nrow(data),length(sequence))
   for (i in 1:nrow(data)) {
     for (j in 1:length(sequence)) {
-      K[i,j] <- exp(-0.00000002*sum((data_in[i,] - data_out[sequence[j],])**2,na.rm = T))
+      K[i,j] <- exp(-1*gamma*sum((data_in[i,] - data_out[sequence[j],])**2,na.rm = T))
     }    
   }
   return(K)
@@ -50,7 +50,8 @@ kernel_linear_discriminant <- function(data,labels) {
   
   N <- K_positive + K_negative
   
-  N <- N + 5*diag(100)
+  #print(dim(N))
+  N <- N + diag(100)
   
   N_inv <- solve(N)
   
@@ -71,4 +72,4 @@ vect <- kernel_linear_discriminant(data,labels)
 a <- project_points(data,data,vect)
 mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 100)
 pred <- predict(mysvm,a)
-length(as.vector(pred) == labels)
+length(which(as.vector(pred) == labels))
