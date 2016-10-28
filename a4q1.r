@@ -37,16 +37,17 @@ kernel_linear_discriminant <- function(data,labels) {
   
   negative_sequence <- which(A[,ncol(A)] == -1)
   K_negative <- construct_kernel(data,data,negative_sequence)
+  M2 <- apply(K_negative,1,function(X) (1/length(X))*sum(X))
+  
   num_negative <- length(negative_sequence)
   K_negative <- K_negative %*% (diag(num_negative) - (1/num_negative)*matrix(1,num_negative,num_negative)) %*% t(K_negative)
   
   positive_sequence <- which(A[,ncol(A)] == 1)
   K_positive <- construct_kernel(data,data,positive_sequence)
+  M1 <- apply(K_positive,1,function(X) (1/length(X))*sum(X))
+  
   num_positive <- length(positive_sequence)
   K_positive <- K_positive %*% (diag(num_positive) - (1/num_positive)*matrix(1,num_positive,num_positive)) %*% t(K_positive)
-  
-  M1 <- apply(K_positive,1,function(X) (1/length(X))*sum(X))
-  M2 <- apply(K_negative,1,function(X) (1/length(X))*sum(X))
   
   N <- K_positive + K_negative
   
@@ -70,6 +71,7 @@ vect <- kernel_linear_discriminant(data,labels)
 #vect <- kernel_principle_components(data)
 
 a <- project_points(data,data,vect)
-mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 100)
+#mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 100)
+mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 10)
 pred <- predict(mysvm,a)
 length(which(as.vector(pred) == labels))
