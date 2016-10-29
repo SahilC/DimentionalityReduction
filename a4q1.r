@@ -62,17 +62,34 @@ kernel_linear_discriminant <- function(data,labels) {
   return(vect)
 }
 
-data <- as.matrix(read.csv("Datasets/arcene_train.data",header = FALSE, sep = " ",fill = FALSE))
-labels <- read.csv("Datasets/arcene_train.labels", header = FALSE, sep = " ") 
+run_KPCA <- function(data, labels,test,test_labels) {
+  #vect <- kernel_linear_discriminant(data,labels)
+  vect <- kernel_principle_components(data)
+  
+  a <- project_points(data,data,vect)
+  #mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 100)
+  mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma= 0.01,cost = 10)
+  b <- project_points(data,test,vect)
+  pred <- predict(mysvm,b)
+  length(which(as.vector(pred) == test_labels))
+}
 
-test <- as.matrix(read.csv("Datasets/arcene_valid.data", header = FALSE, sep = " ",  fill = TRUE))
-test_labels <- read.csv("Datasets/arcene_valid.labels", header = FALSE, sep = " ")
-#vect <- kernel_linear_discriminant(data,labels)
-vect <- kernel_principle_components(data)
+run_KLDA <- function(data,labels,test,test_labels) {
+  vect <- kernel_linear_discriminant(data,labels)
+  
+  a <- project_points(data,data,vect)
+  #mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 100)
+  mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma= 0.01,cost = 10)
+  b <- project_points(data,test,vect)
+  pred <- predict(mysvm,b)
+  length(which(as.vector(pred) == test_labels))
+}
 
-a <- project_points(data,data,vect)
-#mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma=0.1,cost = 100)
-mysvm <- svm(a,labels,type='C',kernel = 'radial',gamma= 0.01,cost = 10)
-b <- project_points(data,test,vect)
-pred <- predict(mysvm,b)
-length(which(as.vector(pred) == test_labels))
+
+# data <- as.matrix(read.csv("Datasets/arcene_train.data",header = FALSE, sep = " ",fill = FALSE))
+# labels <- read.csv("Datasets/arcene_train.labels", header = FALSE, sep = " ") 
+# 
+# test <- as.matrix(read.csv("Datasets/arcene_valid.data", header = FALSE, sep = " ",  fill = TRUE))
+# test_labels <- read.csv("Datasets/arcene_valid.labels", header = FALSE, sep = " ")
+# run_KPCA(data,labels,test,test_labels)
+# run_KLDA(data,labels,test,test_labels)
